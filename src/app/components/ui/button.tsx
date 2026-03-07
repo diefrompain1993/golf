@@ -1,0 +1,80 @@
+import { cva } from 'class-variance-authority';
+
+const buttonVariants = cva(
+  'inline-flex items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50',
+  {
+    variants: {
+      variant: {
+        default: 'bg-blue-600 text-white hover:bg-blue-700',
+        outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
+        ghost: 'text-gray-700 hover:bg-gray-100',
+        secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
+        destructive: 'bg-red-600 text-white hover:bg-red-700'
+      },
+      size: {
+        default: 'h-10 px-4 py-2',
+        sm: 'h-9 px-3',
+        lg: 'h-11 px-8',
+        icon: 'h-10 w-10'
+      }
+    },
+    defaultVariants: {
+      variant: 'default',
+      size: 'default'
+    }
+  }
+);
+
+interface ButtonProps {
+  children: React.ReactNode;
+  variant?: 'primary' | 'secondary' | 'destructive' | 'outline' | 'ghost';
+  size?: 'sm' | 'md' | 'icon';
+  icon?: React.ReactNode;
+  onClick?: React.MouseEventHandler<HTMLButtonElement>;
+  disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
+  className?: string;
+}
+
+export function Button({
+  children,
+  variant = 'primary',
+  size = 'md',
+  icon,
+  onClick,
+  disabled = false,
+  type = 'button',
+  className
+}: ButtonProps) {
+  const baseStyles = 'inline-flex items-center gap-2 rounded transition-all duration-200 font-normal';
+  
+  const variantStyles = {
+    primary: 'bg-blue-600 text-white hover:bg-blue-700',
+    secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
+    destructive: 'bg-red-600 text-white hover:bg-red-700',
+    outline: 'border border-gray-300 text-gray-700 bg-white hover:bg-gray-50',
+    ghost: 'text-gray-700 hover:bg-gray-100'
+  };
+  
+  const sizeStyles = {
+    sm: 'px-3 py-1.5 text-sm',
+    md: 'px-4 py-2 text-sm',
+    icon: 'h-10 w-10 p-0'
+  };
+  
+  const disabledStyles = 'disabled:opacity-50 disabled:cursor-not-allowed';
+
+  return (
+    <button
+      type={type}
+      onClick={onClick}
+      disabled={disabled}
+      className={`${baseStyles} ${variantStyles[variant]} ${sizeStyles[size]} ${disabledStyles} ${className ?? ''}`}
+    >
+      {icon && <span>{icon}</span>}
+      {children}
+    </button>
+  );
+}
+
+export { buttonVariants };
