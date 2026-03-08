@@ -28,7 +28,10 @@ import { PLATE_COUNTRY_OPTIONS } from '@/app/data/plateCountries';
 import { MOCK_EVENTS, type EventLogEntry } from '@/app/data/events';
 import { getStoredVehiclesByCategory, mergeVehicles } from '@/app/utils/vehicleStore';
 import { formatDateInput, parseDateRange } from '@/app/utils/dateFilter';
-import { isContractorOwnerExpiredOnDate } from '@/app/utils/contractorAccess';
+import {
+  CONTRACTOR_EXPIRED_MESSAGE,
+  isContractorOwnerExpiredOnDate
+} from '@/app/utils/contractorAccess';
 import { getRoutePath } from '@/app/routesConfig';
 import { usePaginatedPageScroll } from '@/app/hooks/use-paginated-page-scroll';
 
@@ -1292,7 +1295,7 @@ export function EventsLog() {
                             : 'hover:bg-muted/30'
                         }`}
                       >
-                        <td className="px-3 py-4 text-center text-[14px] font-mono text-foreground/80 transition-colors hover:text-foreground xl:px-4">
+                        <td className="px-3 py-4 text-center text-[14px] text-foreground/80 transition-colors hover:text-foreground xl:px-4">
                           {`${event.date} ${event.time}`}
                         </td>
                         <td
@@ -1334,16 +1337,17 @@ export function EventsLog() {
                                 )}
                               </span>
                             </div>
-                            {canViewOwnerNames && (
+                            {(canViewOwnerNames || contractorExpired) && (
                               <div className="max-w-full text-center text-[12px] leading-tight text-foreground/70">
-                                {isContractorRow ? (
-                                  <span className="block truncate">{ownerLabel}</span>
-                                ) : (
-                                  <span>{ownerLabel}</span>
-                                )}
+                                {canViewOwnerNames &&
+                                  (isContractorRow ? (
+                                    <span className="block truncate">{ownerLabel}</span>
+                                  ) : (
+                                    <span>{ownerLabel}</span>
+                                  ))}
                                 {contractorExpired && (
-                                  <span className="mt-1 block text-[12px] leading-tight text-red-500">
-                                    Срок действия подрядчика истек
+                                  <span className={`block text-[12px] leading-tight text-red-500 ${canViewOwnerNames ? 'mt-1' : ''}`}>
+                                    {CONTRACTOR_EXPIRED_MESSAGE}
                                   </span>
                                 )}
                               </div>

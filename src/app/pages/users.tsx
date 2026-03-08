@@ -768,7 +768,7 @@ export function Users() {
                       {roleLabels[entry.role]}
                     </span>
                   </td>
-                  <td className="py-4 px-4 text-center text-[14px] text-foreground/80 font-mono transition-colors hover:text-foreground 2xl:px-8">
+                  <td className="py-4 px-4 text-center text-[14px] text-foreground/80 transition-colors hover:text-foreground 2xl:px-8">
                     {entry.lastLogin}
                   </td>
                   {canManageUser && (
@@ -840,7 +840,6 @@ export function Users() {
     </>
   );
 }
-
 
 
 

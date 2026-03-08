@@ -1549,7 +1549,7 @@ export function Vehicles() {
                       </td>
                     )}
                       <td
-                        className={`py-4 text-center text-[14px] text-foreground/80 font-mono transition-colors hover:text-foreground ${
+                        className={`py-4 text-center text-[14px] text-foreground/80 transition-colors hover:text-foreground ${
                           canManage ? 'pl-4 pr-6' : 'px-6'
                         }`}
                       >
@@ -1668,7 +1668,6 @@ export function Vehicles() {
   );
 
 }
-
 
 
 

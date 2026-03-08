@@ -35,7 +35,7 @@ export function Header() {
       </div>
 
       <div className="flex items-center text-foreground">
-        <span className="text-lg font-semibold font-mono tracking-wide">{time}</span>
+        <span className="text-lg font-semibold tracking-wide">{time}</span>
       </div>
     </header>
   );

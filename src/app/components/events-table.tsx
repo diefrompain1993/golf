@@ -3,9 +3,14 @@ import { Tooltip, TooltipContent, TooltipTrigger } from '@/app/components/ui/too
 import { useMemo, useState } from 'react';
 import { formatPlateNumber, getPlateCountryCode } from '@/app/utils/plate';
 import { useAuth } from '@/auth/authContext';
+import {
+  CONTRACTOR_EXPIRED_MESSAGE,
+  isContractorOwnerExpiredOnDate
+} from '@/app/utils/contractorAccess';
 
 interface Event {
   id: string;
+  date: string;
   time: string;
   camera: string;
   plateNumber: string;
@@ -17,15 +22,16 @@ interface Event {
 const events: Event[] = [
   {
     id: '00001',
+    date: '12.02.2026',
     time: '12:41:23',
     camera: 'Въезд-1',
-    plateNumber: 'H 740640',
-    country: 'RUS',
-    owner: 'ООО "ГрандСтрой"',
+    plateNumber: 'H123HH16',
+    owner: 'ООО "ТрансСервис"',
     status: 'Подрядчик'
   },
   {
     id: '00002',
+    date: '14.02.2026',
     time: '12:39:45',
     camera: 'Въезд-2',
     plateNumber: 'Х777ХХ78',
@@ -34,6 +40,7 @@ const events: Event[] = [
   },
   {
     id: '00003',
+    date: '14.02.2026',
     time: '12:35:12',
     camera: 'Въезд-1',
     plateNumber: 'М999МР77',
@@ -42,6 +49,7 @@ const events: Event[] = [
   },
   {
     id: '00004',
+    date: '14.02.2026',
     time: '12:20:08',
     camera: 'Въезд-1',
     plateNumber: 'К456КМ77',
@@ -50,6 +58,7 @@ const events: Event[] = [
   },
   {
     id: '00005',
+    date: '13.02.2026',
     time: '12:15:32',
     camera: 'Въезд-2',
     plateNumber: 'В888АА50',
@@ -58,14 +67,16 @@ const events: Event[] = [
   },
   {
     id: '00006',
+    date: '13.02.2026',
     time: '12:10:15',
     camera: 'Въезд-1',
     plateNumber: 'О555ОО50',
-    owner: 'ООО "Строймонтаж"',
+    owner: 'ООО "СМК"',
     status: 'Подрядчик'
   },
   {
     id: '00007',
+    date: '13.02.2026',
     time: '12:05:47',
     camera: 'Въезд-2',
     plateNumber: 'Р321КР78',
@@ -74,6 +85,7 @@ const events: Event[] = [
   },
   {
     id: '00008',
+    date: '13.02.2026',
     time: '12:01:19',
     camera: 'Въезд-2',
     plateNumber: 'В888АА50',
@@ -82,6 +94,7 @@ const events: Event[] = [
   },
   {
     id: '00009',
+    date: '13.02.2026',
     time: '11:58:42',
     camera: 'Въезд-2',
     plateNumber: 'Р321КР78',
@@ -90,11 +103,21 @@ const events: Event[] = [
   },
   {
     id: '00010',
+    date: '13.02.2026',
     time: '11:54:22',
-    camera: 'Въезд-1',
-    plateNumber: 'О555ОО50',
-    owner: 'ООО "Строймонтаж"',
+    camera: 'Въезд-3',
+    plateNumber: 'К777КК52',
+    owner: 'ООО "ГрандСтрой"',
     status: 'Подрядчик'
+  },
+  {
+    id: '00011',
+    date: '13.02.2026',
+    time: '11:49:18',
+    camera: 'Въезд-1',
+    plateNumber: 'Т555ТТ77',
+    owner: 'Николаев В.В.',
+    status: 'Белый'
   }
 ];
 
@@ -112,6 +135,7 @@ interface EventsTableProps {
 
 export function EventsTable({ onViewAll, className }: EventsTableProps) {
   const { user } = useAuth();
+  const isGuard = user?.role === 'guard';
   const canViewOwnerNames = user?.role !== 'guard';
   const showListColumn = true;
   const [timeSort, setTimeSort] = useState<'asc' | 'desc'>('desc');
@@ -144,12 +168,16 @@ export function EventsTable({ onViewAll, className }: EventsTableProps) {
       </div>
 
       <div className="flex-1 overflow-x-auto">
-        <table className="w-full min-w-[760px] table-auto xl:min-w-full xl:table-fixed">
-          <colgroup className="hidden xl:table-column-group">
-            <col style={{ width: '17%' }} />
-            <col style={{ width: canViewOwnerNames ? '39%' : '31%' }} />
-            <col style={{ width: '22%' }} />
-            <col style={{ width: canViewOwnerNames ? '22%' : '30%' }} />
+        <table
+          className={`w-full ${
+            isGuard ? 'min-w-[560px] table-fixed md:min-w-[600px]' : 'min-w-[760px] table-auto xl:min-w-full xl:table-fixed'
+          }`}
+        >
+          <colgroup className={isGuard ? '' : 'hidden xl:table-column-group'}>
+            <col style={{ width: isGuard ? '22%' : '17%' }} />
+            <col style={{ width: isGuard ? '40%' : canViewOwnerNames ? '39%' : '31%' }} />
+            <col style={{ width: isGuard ? '22%' : '22%' }} />
+            <col style={{ width: isGuard ? '16%' : canViewOwnerNames ? '22%' : '30%' }} />
           </colgroup>
           <thead>
             <tr className="bg-muted/20 border-b border-border">
@@ -189,18 +217,29 @@ export function EventsTable({ onViewAll, className }: EventsTableProps) {
               const ownerLabel = isUnrecognized || event.owner === 'Неизвестно' ? '—' : event.owner;
               const countryCode = getPlateCountryCode(event.plateNumber, event.country);
               const formattedPlate = formatPlateNumber(event.plateNumber);
+              const contractorExpired =
+                event.status === 'Подрядчик' &&
+                isContractorOwnerExpiredOnDate(event.owner, event.date);
 
               return (
                 <tr
                   key={event.id}
                   className="border-b border-border/50 hover:bg-muted/30 transition-smooth group"
                 >
-                  <td className="py-4 px-2 text-center whitespace-nowrap text-[14px] font-medium text-foreground/80 font-mono tabular-nums transition-colors hover:text-foreground md:px-2 xl:px-4">
+                  <td
+                    className={`py-4 text-center whitespace-nowrap text-[14px] font-medium text-foreground/80 tabular-nums transition-colors hover:text-foreground ${
+                      isGuard ? 'px-1.5 md:px-2.5' : 'px-2 md:px-2 xl:px-4'
+                    }`}
+                  >
                     {event.time}
                   </td>
-                  <td className="py-4 px-2 text-center text-foreground plate-text md:px-2 xl:px-4">
-                    <div className="flex flex-col items-center gap-1.5">
-                      <div className="grid w-full grid-cols-[1fr_auto_1fr] items-center gap-2">
+                  <td
+                    className={`py-4 text-center text-foreground plate-text ${
+                      isGuard ? 'px-2 md:px-3' : 'px-2 md:px-2 xl:px-4'
+                    }`}
+                  >
+                    <div className={`flex flex-col items-center ${isGuard ? 'gap-1' : 'gap-1.5'}`}>
+                      <div className={`grid w-full items-center ${isGuard ? 'grid-cols-[1fr_auto_1fr] gap-1.5' : 'grid-cols-[1fr_auto_1fr] gap-2'}`}>
                         <span aria-hidden="true" />
                         <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
                           {formattedPlate}
@@ -233,17 +272,28 @@ export function EventsTable({ onViewAll, className }: EventsTableProps) {
                           )}
                         </span>
                       </div>
-                      {canViewOwnerNames && (
-                        <span className="max-w-full text-center text-[12px] font-medium leading-tight text-foreground/65">
-                          {ownerLabel}
-                        </span>
+                      {(canViewOwnerNames || contractorExpired) && (
+                        <div className="max-w-full text-center text-[12px] font-medium leading-tight text-foreground/65">
+                          {canViewOwnerNames && (
+                            <span className="block">{ownerLabel}</span>
+                          )}
+                          {contractorExpired && (
+                            <span
+                              className={`block text-[12px] leading-tight text-red-500 ${canViewOwnerNames ? 'mt-1' : ''}`}
+                            >
+                              {CONTRACTOR_EXPIRED_MESSAGE}
+                            </span>
+                          )}
+                        </div>
                       )}
                     </div>
                   </td>
                   {showListColumn && (
-                    <td className="py-4 px-2 text-center md:px-2 xl:px-4">
+                    <td className={`py-4 text-center ${isGuard ? 'px-1.5 md:px-2.5' : 'px-2 md:px-2 xl:px-4'}`}>
                       <span
-                        className={`mx-auto flex max-w-[138px] w-full items-center justify-center whitespace-nowrap rounded-full px-2.5 py-1 text-[13px] font-medium ${getStatusStyles(
+                        className={`mx-auto flex w-full items-center justify-center whitespace-nowrap rounded-full font-medium ${
+                          isGuard ? 'max-w-[118px] px-2 py-1 text-[12px]' : 'max-w-[138px] px-2.5 py-1 text-[13px]'
+                        } ${getStatusStyles(
                           event.status
                         )}`}
                       >
@@ -251,7 +301,11 @@ export function EventsTable({ onViewAll, className }: EventsTableProps) {
                       </span>
                     </td>
                   )}
-                  <td className="py-4 px-2 text-center whitespace-nowrap text-[14px] font-medium text-foreground/80 md:px-2 xl:px-4">
+                  <td
+                    className={`py-4 text-center whitespace-nowrap font-medium text-foreground/80 ${
+                      isGuard ? 'px-1.5 text-[13px] md:px-2.5' : 'px-2 text-[14px] md:px-2 xl:px-4'
+                    }`}
+                  >
                     {event.camera}
                   </td>
                 </tr>
@@ -263,7 +317,7 @@ export function EventsTable({ onViewAll, className }: EventsTableProps) {
 
       <div className="px-8 pt-4 pb-2 border-t border-border flex items-center justify-center bg-muted/20">
         <p className="text-sm font-medium text-muted-foreground text-center w-full -translate-y-[2px]">
-          Показано 1-10 из {events.length}
+          {sortedEvents.length > 0 ? `Показано 1-${sortedEvents.length} из ${sortedEvents.length}` : 'Показано 0 из 0'}
         </p>
       </div>
     </div>

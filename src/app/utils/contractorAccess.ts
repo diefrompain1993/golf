@@ -52,6 +52,14 @@ const getOwnerContractorVehicles = (
   );
 };
 
+export const CONTRACTOR_EXPIRED_MESSAGE = 'Срок действия подрядчика истек';
+
+export interface ContractorAccessState {
+  accessDate: string;
+  statusLabel: string;
+  isExpired: boolean;
+}
+
 const resolveOwnerAccessDate = (ownerVehicles: StoredVehicle[]) => {
   if (ownerVehicles.length === 0) return null;
 
@@ -74,14 +82,12 @@ const resolveOwnerAccessDate = (ownerVehicles: StoredVehicle[]) => {
   return withDate[0];
 };
 
-export const getContractorAccessState = (
-  vehicle: StoredVehicle,
+export const getContractorOwnerAccessState = (
+  owner: string,
   referenceDate: Date = new Date(),
   contractorVehicles?: StoredVehicle[]
-) => {
-  if (vehicle.category !== 'contractor') return null;
-
-  const ownerVehicles = getOwnerContractorVehicles(vehicle.owner, contractorVehicles);
+): ContractorAccessState | null => {
+  const ownerVehicles = getOwnerContractorVehicles(owner, contractorVehicles);
   const resolved = resolveOwnerAccessDate(ownerVehicles);
   if (!resolved?.accessDate) return null;
 
@@ -100,6 +106,15 @@ export const getContractorAccessState = (
     statusLabel: isExpired ? 'Истек' : 'Активен',
     isExpired
   };
+};
+
+export const getContractorAccessState = (
+  vehicle: StoredVehicle,
+  referenceDate: Date = new Date(),
+  contractorVehicles?: StoredVehicle[]
+) => {
+  if (vehicle.category !== 'contractor') return null;
+  return getContractorOwnerAccessState(vehicle.owner, referenceDate, contractorVehicles);
 };
 
 export const getContractorAccessText = (

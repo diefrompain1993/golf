@@ -1194,7 +1194,7 @@ export function Contractors() {
                         </span>
                       </td>
                     )}
-                    <td className="py-4 px-6 text-center text-[14px] text-foreground/80 font-mono transition-colors hover:text-foreground">
+                    <td className="py-4 px-6 text-center text-[14px] text-foreground/80 transition-colors hover:text-foreground">
                       {vehicle.addedDate}
                     </td>
                     <td className="py-4 px-6 text-center text-[14px] text-foreground/70">

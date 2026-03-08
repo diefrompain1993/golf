@@ -5,6 +5,10 @@ import { useAuth } from '@/auth/authContext';
 import { AlertCircle, Users2, ShieldCheck, ShieldAlert, Building2 } from 'lucide-react';
 import type { RouteId } from '@/app/routesConfig';
 import { getPlateCountryCode } from '@/app/utils/plate';
+import {
+  getContractorOwnerAccessState,
+  parseDateToTimestamp
+} from '@/app/utils/contractorAccess';
 
 interface DashboardProps {
   onNavigate?: (page: RouteId) => void;
@@ -66,19 +70,37 @@ export function Dashboard({ onNavigate }: DashboardProps) {
     ? 'w-full overflow-hidden xl:mt-0 xl:flex-1'
     : 'w-full overflow-hidden';
   const lastEntry = {
+    date: '12.02.2026',
     time: '12:41:23',
-    plateNumber: 'H 740640',
+    plateNumber: 'H123HH16',
     country: 'RUS',
     status: 'Подрядчик' as const,
     camera: 'Въезд-1',
-    owner: 'ООО "ГрандСтрой"',
-    notes: 'Последний въезд (демо)'
+    owner: 'ООО "ТрансСервис"',
+    notes: 'Логистика'
   };
   const lastEntryListMeta = getLastEntryListMeta(lastEntry.status);
   const lastEntryCountryCode = getPlateCountryCode(lastEntry.plateNumber, lastEntry.country);
   const showLastEntryCountryCode = lastEntryCountryCode !== '—';
   const lastEntryNotes = lastEntry.notes?.trim();
   const showLastEntryNotes = Boolean(lastEntryNotes) && lastEntryNotes !== '—' && lastEntryNotes !== '-';
+  const lastEntryReferenceTimestamp = parseDateToTimestamp(lastEntry.date);
+  const lastEntryAccessState =
+    lastEntry.status === 'Подрядчик'
+      ? getContractorOwnerAccessState(
+          lastEntry.owner,
+          lastEntryReferenceTimestamp ? new Date(lastEntryReferenceTimestamp) : new Date()
+        )
+      : null;
+  const showLastEntryAccessState = Boolean(lastEntryAccessState?.accessDate);
+  const lastEntryAccessLabel = lastEntryAccessState
+    ? lastEntryAccessState.isExpired
+      ? `Срок действия истек ${lastEntryAccessState.accessDate}`
+      : `Срок действия до ${lastEntryAccessState.accessDate}`
+    : '';
+  const lastEntryAccessClassName = lastEntryAccessState?.isExpired
+    ? 'border-red-200 bg-red-50 text-red-600'
+    : 'border-slate-200 bg-slate-50 text-slate-600';
 
   return (
     <div className="space-y-8">
@@ -122,7 +144,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           {showLastEntry && (
             <div
               className={`w-full bg-white rounded-xl border border-border shadow-sm flex flex-col ${
-                isGuard ? 'px-5 pt-5 pb-5 gap-2.5 md:px-6 xl:px-8 xl:pt-6 xl:pb-6 xl:gap-3' : 'px-8 pt-6 pb-6 gap-3'
+                isGuard ? 'px-5 pt-5 pb-5 gap-2.5 md:px-6 xl:px-7 xl:pt-5 xl:pb-4 xl:gap-2.5' : 'px-8 pt-6 pb-6 gap-3'
               }`}
             >
               <h2 className="text-[20px] font-bold text-foreground tracking-tight">
@@ -130,7 +152,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
               </h2>
               <div
                 className={`rounded-xl overflow-hidden border border-border ${
-                  isGuard ? 'h-[230px] sm:h-[270px] md:h-[320px] xl:flex-1 xl:min-h-0 xl:h-auto' : 'flex-1 min-h-0'
+                  isGuard ? 'h-[230px] sm:h-[270px] md:h-[320px] xl:h-[272px] xl:flex-none' : 'flex-1 min-h-0'
                 }`}
               >
                 <img
@@ -143,32 +165,45 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                 {isGuard ? (
                   <>
                     <div className="flex items-center justify-between gap-3">
-                      <span>Время въезда</span>
-                      <span className="text-foreground font-semibold font-mono">
+                      <span className="text-[13px] font-medium text-foreground/80">
+                        Время въезда
+                      </span>
+                      <span className="text-[15px] font-semibold tracking-tight text-foreground">
                         {lastEntry.time}
                       </span>
                     </div>
                     <div className="flex items-center justify-between gap-3">
-                      <span>Камера</span>
-                      <span className="text-foreground font-semibold">{lastEntry.camera}</span>
+                      <span className="text-[13px] font-medium text-foreground/80">Камера</span>
+                      <span className="text-[15px] font-semibold tracking-tight text-foreground">
+                        {lastEntry.camera}
+                      </span>
                     </div>
-                    <div className="rounded-2xl border border-border bg-muted/20 px-4 py-4 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
-                      <div className="text-foreground plate-text">
+                    <div className="rounded-2xl border border-border bg-muted/20 px-4 py-3.5 text-center shadow-[inset_0_1px_0_rgba(255,255,255,0.72)]">
+                      <div className="plate-text text-[1.08rem] text-foreground">
                         {lastEntry.plateNumber}
                         {showLastEntryCountryCode ? ` (${lastEntryCountryCode})` : ''}
                       </div>
-                      <div className="mt-3 flex justify-center">
+                      <div className="mt-2.5 flex justify-center">
                         <span
-                          className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold ${lastEntryListMeta.badgeClassName}`}
+                          className={`inline-flex items-center gap-1 rounded-full border px-2 py-[4px] text-[12px] font-semibold leading-none ${lastEntryListMeta.badgeClassName}`}
                           aria-label={lastEntryListMeta.label}
                           title={lastEntryListMeta.label}
                         >
-                          <lastEntryListMeta.Icon className="h-4 w-4" strokeWidth={2} />
+                          <lastEntryListMeta.Icon className="h-3 w-3" strokeWidth={2} />
                           {lastEntryListMeta.label}
                         </span>
                       </div>
+                      {showLastEntryAccessState && (
+                        <div className="mt-2.5 flex justify-center">
+                          <span
+                            className={`inline-flex max-w-full items-center justify-center rounded-full border px-2.5 py-1 text-center text-[11px] font-semibold leading-tight ${lastEntryAccessClassName}`}
+                          >
+                            {lastEntryAccessLabel}
+                          </span>
+                        </div>
+                      )}
                       {showLastEntryNotes && (
-                        <div className="mt-3 border-t border-border/70 pt-3 text-center text-sm font-medium leading-snug text-foreground/85">
+                        <div className="mt-2.5 border-t border-border/70 pt-2.5 text-center text-sm font-medium leading-snug text-foreground/85">
                           {lastEntryNotes}
                         </div>
                       )}
@@ -178,7 +213,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                   <>
                     <div className="flex items-center justify-between gap-3">
                       <span>Время въезда</span>
-                      <span className="text-foreground font-semibold font-mono">
+                      <span className="text-foreground font-semibold">
                         {lastEntry.time}
                       </span>
                     </div>
@@ -205,6 +240,15 @@ export function Dashboard({ onNavigate }: DashboardProps) {
                         <span className="text-foreground font-semibold text-right">{lastEntryNotes}</span>
                       </div>
                     )}
+                    {showLastEntryAccessState && (
+                      <div className="flex justify-center pt-1">
+                        <span
+                          className={`inline-flex max-w-full items-center justify-center rounded-full border px-3 py-1 text-center text-[12px] font-semibold leading-tight ${lastEntryAccessClassName}`}
+                        >
+                          {lastEntryAccessLabel}
+                        </span>
+                      </div>
+                    )}
                     <div className="flex justify-center pt-[14px]">
                       <span
                         className={`inline-flex items-center gap-2 rounded-full border px-3 py-1 text-sm font-semibold ${lastEntryListMeta.badgeClassName}`}
@@ -223,7 +267,7 @@ export function Dashboard({ onNavigate }: DashboardProps) {
           <QuickSearch className={quickSearchClass} />
         </div>
         <div className={rightColumnClass}>
-          <EventsTable onViewAll={() => onNavigate?.('events')} className="h-full" />
+          <EventsTable onViewAll={() => onNavigate?.('events')} />
         </div>
       </div>
     </div>

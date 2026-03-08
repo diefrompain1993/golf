@@ -362,7 +362,7 @@ export function AuditLog() {
                       key={index}
                       className="h-14 border-b border-border/50 hover:bg-muted/30 transition-smooth"
                     >
-                      <td className="h-14 px-4 align-middle text-center text-[14px] text-foreground/80 font-mono transition-colors hover:text-foreground">
+                      <td className="h-14 px-4 align-middle text-center text-[14px] text-foreground/80 transition-colors hover:text-foreground">
                         <span className="block truncate">{entry.timestamp}</span>
                       </td>
                       <td className="h-14 px-4 align-middle text-center text-[14px] font-medium text-foreground">
@@ -482,7 +482,6 @@ export function AuditLog() {
     </>
   );
 }
-
 
 
 
