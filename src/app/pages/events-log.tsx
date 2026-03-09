@@ -52,7 +52,24 @@ const parseTimeToSeconds = (value: string) => {
   return hours * 3600 + minutes * 60 + seconds;
 };
 
-const MIN_TIME_RANGE_SECONDS = 60 * 60;
+const getTimeRangeError = (fromValue: string, toValue: string) => {
+  const fromSeconds = parseTimeToSeconds(fromValue);
+  const toSeconds = parseTimeToSeconds(toValue);
+
+  if (fromSeconds === null || toSeconds === null) {
+    return 'Введите корректное время.';
+  }
+
+  if (fromSeconds === toSeconds) {
+    return 'Время "с" и "до" не должно быть одинаковым.';
+  }
+
+  if (toSeconds < fromSeconds) {
+    return 'Время "до" должно быть позже времени "с".';
+  }
+
+  return '';
+};
 
 const parseTimeToHour = (value: string) => {
   const parts = value.split(':').map((part) => Number(part));
@@ -246,18 +263,10 @@ export function EventsLog() {
   const contractorTimeRangeError = useMemo(() => {
     if (!showExtraFilters) return '';
 
-    const fromSeconds = parseTimeToSeconds(contractorTimeFrom.trim() || '00:00:00');
-    const toSeconds = parseTimeToSeconds(contractorTimeTo.trim() || '23:59:59');
-
-    if (fromSeconds === null || toSeconds === null) {
-      return 'Введите корректное время.';
-    }
-
-    if (toSeconds - fromSeconds < MIN_TIME_RANGE_SECONDS) {
-      return 'Время "до" должно быть минимум на 1 час позже времени "с".';
-    }
-
-    return '';
+    return getTimeRangeError(
+      contractorTimeFrom.trim() || '00:00:00',
+      contractorTimeTo.trim() || '23:59:59'
+    );
   }, [showExtraFilters, contractorTimeFrom, contractorTimeTo]);
   const showContractorTimeRangeError = Boolean(contractorTimeRangeError);
 
@@ -284,8 +293,13 @@ export function EventsLog() {
       const partial = dateStart || dateEnd;
       return partial ? value.startsWith(partial) : true;
     };
-    const contractorFromSeconds = parseTimeToSeconds(contractorTimeFrom);
-    const contractorToSeconds = parseTimeToSeconds(contractorTimeTo);
+    const shouldApplyContractorTimeFilter = !contractorTimeRangeError;
+    const contractorFromSeconds = shouldApplyContractorTimeFilter
+      ? parseTimeToSeconds(contractorTimeFrom)
+      : null;
+    const contractorToSeconds = shouldApplyContractorTimeFilter
+      ? parseTimeToSeconds(contractorTimeTo)
+      : null;
     const plateTokens = plateQuery
       .split(',')
       .map((value) => normalizePlateNumber(value))
@@ -348,7 +362,8 @@ export function EventsLog() {
     statusFilter,
     contractorQuery,
     contractorTimeFrom,
-    contractorTimeTo
+    contractorTimeTo,
+    contractorTimeRangeError
   ]);
 
   useEffect(() => {
@@ -775,40 +790,15 @@ export function EventsLog() {
   }, []);
   const handleContractorTimeFromChange = useCallback(
     (nextValue: string) => {
-      const fromSeconds = parseTimeToSeconds(nextValue.trim() || '00:00:00');
-      const toSeconds = parseTimeToSeconds(contractorTimeTo.trim() || '23:59:59');
-
-      if (
-        fromSeconds !== null &&
-        toSeconds !== null &&
-        toSeconds - fromSeconds < MIN_TIME_RANGE_SECONDS
-      ) {
-        setContractorTimeFrom(nextValue);
-        setContractorTimeTo('00:00:00');
-        return;
-      }
-
       setContractorTimeFrom(nextValue);
     },
-    [contractorTimeTo]
+    []
   );
   const handleContractorTimeToChange = useCallback(
     (nextValue: string) => {
-      const fromSeconds = parseTimeToSeconds(contractorTimeFrom.trim() || '00:00:00');
-      const toSeconds = parseTimeToSeconds(nextValue.trim() || '23:59:59');
-
-      if (
-        fromSeconds !== null &&
-        toSeconds !== null &&
-        toSeconds - fromSeconds < MIN_TIME_RANGE_SECONDS
-      ) {
-        setContractorTimeTo('00:00:00');
-        return;
-      }
-
       setContractorTimeTo(nextValue);
     },
-    [contractorTimeFrom]
+    []
   );
 
   return (

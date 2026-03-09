@@ -129,7 +129,24 @@ const parseTimeToSeconds = (value: string) => {
   return hours * 3600 + minutes * 60 + seconds;
 };
 
-const MIN_TIME_RANGE_SECONDS = 60 * 60;
+const getTimeRangeError = (fromValue: string, toValue: string) => {
+  const fromSeconds = parseTimeToSeconds(fromValue);
+  const toSeconds = parseTimeToSeconds(toValue);
+
+  if (fromSeconds === null || toSeconds === null) {
+    return 'Введите корректное время.';
+  }
+
+  if (fromSeconds === toSeconds) {
+    return 'Время "с" и "до" не должно быть одинаковым.';
+  }
+
+  if (toSeconds < fromSeconds) {
+    return 'Время "до" должно быть позже времени "с".';
+  }
+
+  return '';
+};
 
 const parseDateTimeString = (value: string) => {
   const [datePart, timePart = '00:00:00'] = value.split(' ');
@@ -381,55 +398,21 @@ export function ExportData() {
   }, []);
   const handleManualTimeFromChange = useCallback(
     (nextValue: string) => {
-      const fromSeconds = parseTimeToSeconds(nextValue.trim() || '00:00:00');
-      const toSeconds = parseTimeToSeconds(manualTimeTo.trim() || '23:59:59');
-
-      if (
-        fromSeconds !== null &&
-        toSeconds !== null &&
-        toSeconds - fromSeconds < MIN_TIME_RANGE_SECONDS
-      ) {
-        setManualTimeFrom(nextValue);
-        setManualTimeTo('00:00:00');
-        return;
-      }
-
       setManualTimeFrom(nextValue);
     },
-    [manualTimeTo]
+    []
   );
   const handleManualTimeToChange = useCallback(
     (nextValue: string) => {
-      const fromSeconds = parseTimeToSeconds(manualTimeFrom.trim() || '00:00:00');
-      const toSeconds = parseTimeToSeconds(nextValue.trim() || '23:59:59');
-
-      if (
-        fromSeconds !== null &&
-        toSeconds !== null &&
-        toSeconds - fromSeconds < MIN_TIME_RANGE_SECONDS
-      ) {
-        setManualTimeTo('00:00:00');
-        return;
-      }
-
       setManualTimeTo(nextValue);
     },
-    [manualTimeFrom]
+    []
   );
 
   const timeRangeError = useMemo(() => {
     if (!shouldApplyTimeFilter) return '';
 
-    const fromSeconds = parseTimeToSeconds(normalizedTimeFrom);
-    const toSeconds = parseTimeToSeconds(normalizedTimeTo);
-    if (fromSeconds === null || toSeconds === null) {
-      return 'Введите корректное время.';
-    }
-    if (toSeconds - fromSeconds < MIN_TIME_RANGE_SECONDS) {
-      return 'Время "до" должно быть минимум на 1 час позже времени "с".';
-    }
-
-    return '';
+    return getTimeRangeError(normalizedTimeFrom, normalizedTimeTo);
   }, [shouldApplyTimeFilter, normalizedTimeFrom, normalizedTimeTo]);
   const showTimeRangeError = Boolean(timeRangeError);
 
