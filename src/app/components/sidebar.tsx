@@ -6,6 +6,7 @@ import {
   ChevronRight,
   Download,
   FileText,
+  Hammer,
   Home,
   LogOut,
   Users
@@ -18,7 +19,6 @@ import { BrandLogo } from '@/app/components/brand-logo';
 
 const SIDEBAR_SET_COLLAPSED_EVENT = 'app:sidebar:set-collapsed';
 const TABLET_COLLAPSE_MAX_WIDTH = 1366;
-const contractorsIconSrc = new URL('../../../hummer_bummer.png', import.meta.url).href;
 
 const shouldCollapseSidebarByDefault = () => {
   if (typeof window === 'undefined') return false;
@@ -45,15 +45,21 @@ interface SidebarImageIconProps {
 }
 
 function SidebarImageIcon({ src, alt, className }: SidebarImageIconProps) {
-  const isContractorsIcon = src === '/prod_icon.png';
-  const resolvedSrc = isContractorsIcon ? contractorsIconSrc : src;
-  const resolvedClassName = isContractorsIcon ? 'scale-[0.92]' : className ?? '';
+  if (src === '/prod_icon.png') {
+    return (
+      <Hammer
+        aria-label={alt}
+        className={`h-[18px] w-[18px] transition-[opacity,transform] duration-200 ${className ?? ''}`}
+        strokeWidth={2}
+      />
+    );
+  }
 
   return (
     <img
-      src={resolvedSrc}
+      src={src}
       alt={alt}
-      className={`sidebar-image-icon h-[18px] w-[18px] object-contain transition-[filter,opacity,transform] duration-200 ${resolvedClassName}`}
+      className={`sidebar-image-icon h-[18px] w-[18px] object-contain transition-[filter,opacity,transform] duration-200 ${className ?? ''}`}
       draggable={false}
     />
   );
