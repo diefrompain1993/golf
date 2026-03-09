@@ -245,6 +245,20 @@ export function QuickSearch({ className }: QuickSearchProps) {
     listLabel: categoryShortLabels[vehicle.category],
     listColor: categoryTextColors[vehicle.category]
   }));
+  const hasEmptyInput = plateNumber.trim() === '';
+  const isIdleState = searchResult === null;
+  const showResultPanel = isIdleState || hasFoundResult || hasNotFound;
+  const resultSummaryHint =
+    resultItems.length > 5
+      ? 'Прокрутите список'
+      : hasNotFound
+        ? 'По запросу ничего не найдено'
+        : isIdleState
+          ? hasEmptyInput
+            ? 'Введите номер для поиска'
+            : 'Нажмите "Найти" для поиска'
+          : null;
+  const placeholderRows = 3;
 
   return (
     <div
@@ -296,7 +310,7 @@ export function QuickSearch({ className }: QuickSearchProps) {
           </div>
         </div>
 
-        {hasFoundResult && resultItems.length > 0 && (
+        {showResultPanel && (
           <div className="border-t border-border pt-3 flex flex-col flex-1 min-h-0">
             <div className="flex flex-col gap-2 text-sm text-foreground/70 min-h-0 [@media(max-width:1279px)]:text-[15px]">
               <div className="flex items-center justify-between gap-2">
@@ -304,17 +318,19 @@ export function QuickSearch({ className }: QuickSearchProps) {
                   <span>Найдено автомобилей:</span>
                   <span className="font-semibold text-foreground">{resultItems.length}</span>
                 </div>
-                {resultItems.length > 5 && (
-                  <span className="text-[11px] text-muted-foreground">Прокрутите список</span>
+                {resultSummaryHint && (
+                  <span className="text-[11px] text-muted-foreground">{resultSummaryHint}</span>
                 )}
               </div>
-              <div className="h-[96px] rounded-lg border border-border/80 bg-muted/20 overflow-hidden [@media(max-width:1279px)]:h-[108px]">
-                <div className="grid grid-cols-[minmax(0,1fr)_124px] items-center gap-2.5 border-b border-border/70 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground [@media(max-width:1279px)]:grid-cols-[minmax(0,1fr)_132px] [@media(max-width:1279px)]:gap-3 [@media(max-width:1279px)]:py-2 [@media(max-width:1279px)]:text-[11px]">
-                  <span>Номер</span>
+              <div className="h-[116px] rounded-lg border border-border/80 bg-muted/20 overflow-hidden [@media(max-width:1279px)]:h-[128px]">
+                <div className="grid grid-cols-2 items-center gap-3 border-b border-border/70 px-3 py-1.5 text-[10px] font-semibold uppercase tracking-wide text-muted-foreground [@media(max-width:1279px)]:py-2 [@media(max-width:1279px)]:text-[11px]">
+                  <span className="text-center">Номер</span>
                   <span className="text-center">Список</span>
                 </div>
                 <div
-                  className="h-[64px] overflow-y-auto overscroll-contain px-1 py-1 [@media(max-width:1279px)]:h-[72px] [@media(max-width:1279px)]:px-1.5 [@media(max-width:1279px)]:py-1.5"
+                  className={`h-[84px] overscroll-contain px-1 py-1 [@media(max-width:1279px)]:h-[92px] [@media(max-width:1279px)]:px-1.5 [@media(max-width:1279px)]:py-1.5 ${
+                    resultItems.length > 0 ? 'overflow-y-auto' : 'overflow-y-hidden'
+                  }`}
                   onWheel={(event) => {
                     const container = event.currentTarget;
                     if (container.scrollHeight <= container.clientHeight) return;
@@ -329,45 +345,69 @@ export function QuickSearch({ className }: QuickSearchProps) {
                     }
                   }}
                 >
-                  {resultItems.map((item) => (
-                    <div
-                      key={item.key}
-                      className="grid grid-cols-[minmax(0,1fr)_124px] items-center gap-2.5 rounded-md px-2 py-1 hover:bg-white/70 [@media(max-width:1279px)]:grid-cols-[minmax(0,1fr)_132px] [@media(max-width:1279px)]:gap-3 [@media(max-width:1279px)]:px-2.5 [@media(max-width:1279px)]:py-1.5"
-                    >
-                      <span className="inline-flex min-w-0 items-center gap-2 text-foreground plate-text">
-                        <span className="truncate">{formatPlateNumber(item.plateNumber)}</span>
-                        <span className="shrink-0 text-[11px] text-foreground/70 font-semibold [@media(max-width:1279px)]:text-xs">
-                          ({getPlateCountryCode(item.plateNumber, item.country)})
-                        </span>
-                      </span>
-                      <span
-                        className={
-                          "inline-flex items-center justify-center rounded-full border px-2 py-0.5 text-[11px] font-semibold leading-4 [@media(max-width:1279px)]:px-2.5 [@media(max-width:1279px)]:py-1 [@media(max-width:1279px)]:text-xs " +
-                          (listBadgeByTextColor[item.listColor] ?? "border-border bg-white text-foreground/80")
-                        }
-                      >
-                        {item.listLabel}
-                      </span>
-                    </div>
-                  ))}
+                  {resultItems.length > 0
+                    ? resultItems.map((item) => (
+                        <div
+                          key={item.key}
+                          className="grid grid-cols-2 items-center gap-3 rounded-md px-2 py-1 hover:bg-white/70 [@media(max-width:1279px)]:px-2.5 [@media(max-width:1279px)]:py-1.5"
+                        >
+                          <span className="inline-flex w-full min-w-0 items-center justify-center gap-2 text-center text-foreground plate-text">
+                            <span className="truncate">{formatPlateNumber(item.plateNumber)}</span>
+                            <span className="shrink-0 text-[11px] text-foreground/70 font-semibold [@media(max-width:1279px)]:text-xs">
+                              ({getPlateCountryCode(item.plateNumber, item.country)})
+                            </span>
+                          </span>
+                          <span className="flex justify-center">
+                            <span
+                              className={
+                                "inline-flex w-full max-w-[160px] items-center justify-center rounded-full border px-2 py-0.5 text-[11px] font-semibold leading-4 [@media(max-width:1279px)]:max-w-[172px] [@media(max-width:1279px)]:px-2.5 [@media(max-width:1279px)]:py-1 [@media(max-width:1279px)]:text-xs " +
+                                (listBadgeByTextColor[item.listColor] ??
+                                  'border-border bg-white text-foreground/80')
+                              }
+                            >
+                              {item.listLabel}
+                            </span>
+                          </span>
+                        </div>
+                      ))
+                    : Array.from({ length: placeholderRows }).map((_, index) => (
+                        <div
+                          key={`placeholder-row-${index}`}
+                          aria-hidden="true"
+                          className="grid grid-cols-2 items-center gap-3 rounded-md px-2 py-1 opacity-60 [@media(max-width:1279px)]:px-2.5 [@media(max-width:1279px)]:py-1.5"
+                        >
+                          <span className="inline-flex w-full min-w-0 items-center justify-center gap-2 text-center text-muted-foreground plate-text">
+                            <span className="truncate">—</span>
+                            <span className="shrink-0 text-[11px] font-semibold [@media(max-width:1279px)]:text-xs">
+                              (—)
+                            </span>
+                          </span>
+                          <span className="flex justify-center">
+                            <span className="inline-flex w-full max-w-[160px] items-center justify-center rounded-full border border-dashed border-border bg-white/70 px-2 py-0.5 text-[11px] font-semibold leading-4 text-muted-foreground [@media(max-width:1279px)]:max-w-[172px] [@media(max-width:1279px)]:px-2.5 [@media(max-width:1279px)]:py-1 [@media(max-width:1279px)]:text-xs">
+                              —
+                            </span>
+                          </span>
+                        </div>
+                      ))}
                 </div>
               </div>
             </div>
 
-            <div className="mt-auto pt-5 flex items-center justify-between gap-3 [@media(min-width:1024px)_and_(max-width:1279px)]:gap-2">
-              <button
-                type="button"
-                onClick={() => canOpenNote && setDetailsOpen(true)}
-                disabled={!canOpenNote}
-                className={
-                  canOpenNote
-                    ? "flex items-center gap-1.5 text-sm transition-smooth text-primary hover:text-primary/80 [@media(min-width:1024px)_and_(max-width:1279px)]:gap-1 [@media(min-width:1024px)_and_(max-width:1279px)]:text-[13px] [@media(min-width:1024px)_and_(max-width:1279px)]:whitespace-nowrap"
-                    : "flex items-center gap-1.5 text-sm transition-smooth text-muted-foreground/60 cursor-not-allowed [@media(min-width:1024px)_and_(max-width:1279px)]:gap-1 [@media(min-width:1024px)_and_(max-width:1279px)]:text-[13px] [@media(min-width:1024px)_and_(max-width:1279px)]:whitespace-nowrap"
-                }
-              >
-                <MessageSquare className="w-4 h-4" strokeWidth={2} />
-                Есть примечание
-              </button>
+            <div
+              className={`mt-auto pt-5 flex items-center gap-3 [@media(min-width:1024px)_and_(max-width:1279px)]:gap-2 ${
+                canOpenNote ? 'justify-between' : 'justify-end'
+              }`}
+            >
+              {canOpenNote && (
+                <button
+                  type="button"
+                  onClick={() => setDetailsOpen(true)}
+                  className="flex items-center gap-1.5 text-sm transition-smooth text-primary hover:text-primary/80 [@media(min-width:1024px)_and_(max-width:1279px)]:gap-1 [@media(min-width:1024px)_and_(max-width:1279px)]:text-[13px] [@media(min-width:1024px)_and_(max-width:1279px)]:whitespace-nowrap"
+                >
+                  <MessageSquare className="w-4 h-4" strokeWidth={2} />
+                  Есть примечание
+                </button>
+              )}
 
               <Button
                 type="button"
@@ -380,11 +420,6 @@ export function QuickSearch({ className }: QuickSearchProps) {
                 <ArrowRight className="w-4 h-4" />
               </Button>
             </div>
-          </div>
-        )}
-        {hasNotFound && (
-          <div className="border-t border-border pt-5 text-sm text-muted-foreground">
-            Ничего не найдено
           </div>
         )}
       </div>

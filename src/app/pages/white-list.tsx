@@ -18,6 +18,8 @@ import {
   normalizePlateNumber
 } from '@/app/utils/plate';
 import {
+  CONTRACTOR_ACCESS_RANGE_ERROR_MESSAGE,
+  getContractorAccessRangeError,
   parseDateToTimestamp as parseAccessDateToTimestamp
 } from '@/app/utils/contractorAccess';
 import { BASE_VEHICLES } from '@/app/data/vehicles';
@@ -125,6 +127,26 @@ export function WhiteList() {
     category?: string;
   }>({});
   const [countrySuggestionsOpen, setCountrySuggestionsOpen] = useState(false);
+
+  useEffect(() => {
+    const accessRangeError =
+      form.category === 'contractor'
+        ? getContractorAccessRangeError(form.accessFrom.trim(), form.accessTo.trim())
+        : null;
+
+    setErrors((prev) => {
+      if (accessRangeError) {
+        if (prev.accessTo === accessRangeError) return prev;
+        return { ...prev, accessTo: accessRangeError };
+      }
+
+      if (prev.accessTo === CONTRACTOR_ACCESS_RANGE_ERROR_MESSAGE) {
+        return { ...prev, accessTo: undefined };
+      }
+
+      return prev;
+    });
+  }, [form.accessFrom, form.accessTo, form.category]);
 
   const vehicles = useMemo(() => {
     const baseVehicles = [
@@ -490,13 +512,11 @@ export function WhiteList() {
     if (isContractorCategory && accessToValue && !accessToTimestamp) {
       nextErrors.accessTo = 'Введите корректную дату.';
     }
-    if (
-      isContractorCategory &&
-      accessFromTimestamp !== null &&
-      accessToTimestamp !== null &&
-      accessFromTimestamp > accessToTimestamp
-    ) {
-      nextErrors.accessTo = 'Дата завершения должна быть не раньше даты начала.';
+    const accessRangeError = isContractorCategory
+      ? getContractorAccessRangeError(accessFromValue, accessToValue)
+      : null;
+    if (accessRangeError) {
+      nextErrors.accessTo = accessRangeError;
     }
 
     setErrors({});

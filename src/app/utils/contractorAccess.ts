@@ -17,6 +17,25 @@ export const parseDateToTimestamp = (value?: string | null) => {
   return parsed.getTime();
 };
 
+export const CONTRACTOR_ACCESS_RANGE_ERROR_MESSAGE =
+  'Дата завершения должна быть минимум на 1 день позже даты начала.';
+
+export const getContractorAccessRangeError = (
+  accessFromValue?: string | null,
+  accessToValue?: string | null
+) => {
+  const accessFromTimestamp = parseDateToTimestamp(accessFromValue);
+  const accessToTimestamp = parseDateToTimestamp(accessToValue);
+
+  if (accessFromTimestamp === null || accessToTimestamp === null) {
+    return null;
+  }
+
+  return accessFromTimestamp >= accessToTimestamp
+    ? CONTRACTOR_ACCESS_RANGE_ERROR_MESSAGE
+    : null;
+};
+
 const toDateOnlyTimestamp = (value: Date) =>
   new Date(value.getFullYear(), value.getMonth(), value.getDate()).getTime();
 

@@ -446,23 +446,23 @@ export function AuditLog() {
         <DialogContent className="sm:max-w-2xl">
           <DialogHeader>
             <DialogTitle>Детали действия</DialogTitle>
-            <DialogDescription>
+            <DialogDescription className="text-foreground/65">
               Полная информация по выбранной записи журнала.
             </DialogDescription>
           </DialogHeader>
           {selectedDetailsEntry && (
             <div className="space-y-3 text-sm">
               <div className="grid grid-cols-[160px_1fr] gap-x-3 gap-y-2">
-                <span className="text-muted-foreground">Дата и время</span>
+                <span className="font-medium text-foreground/75">Дата и время</span>
                 <span className="font-medium text-foreground">{selectedDetailsEntry.timestamp}</span>
-                <span className="text-muted-foreground">Пользователь</span>
+                <span className="font-medium text-foreground/75">Пользователь</span>
                 <span className="font-medium text-foreground">{selectedDetailsEntry.user}</span>
-                <span className="text-muted-foreground">Действие</span>
+                <span className="font-medium text-foreground/75">Действие</span>
                 <span className="font-medium text-foreground">{getAuditActionLabel(selectedDetailsEntry)}</span>
-                <span className="text-muted-foreground">Объект</span>
+                <span className="font-medium text-foreground/75">Объект</span>
                 <span className="font-medium text-foreground">{selectedDetailsEntry.target}</span>
               </div>
-              <div className="rounded-md border border-border bg-muted/20 p-3 text-foreground/90">
+              <div className="rounded-md border border-slate-300/90 bg-slate-50 p-3 text-foreground shadow-sm">
                 {getDetailsParts(selectedDetailsEntry.details).length > 1 ? (
                   <ul className="space-y-1.5">
                     {getDetailsParts(selectedDetailsEntry.details).map((part, index) => (
@@ -482,7 +482,6 @@ export function AuditLog() {
     </>
   );
 }
-
 
 
 

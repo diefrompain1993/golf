@@ -8,7 +8,8 @@ const buttonVariants = cva(
         default: 'bg-blue-600 text-white hover:bg-blue-700',
         outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
         ghost: 'text-gray-700 hover:bg-gray-100',
-        secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
+        secondary:
+          'border border-gray-300 bg-gray-50 text-gray-900 shadow-sm hover:border-gray-400 hover:bg-white',
         destructive: 'bg-red-600 text-white hover:bg-red-700'
       },
       size: {
@@ -50,7 +51,8 @@ export function Button({
   
   const variantStyles = {
     primary: 'bg-blue-600 text-white hover:bg-blue-700',
-    secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
+    secondary:
+      'border border-gray-300 bg-gray-50 text-gray-900 shadow-sm hover:border-gray-400 hover:bg-white',
     destructive: 'bg-red-600 text-white hover:bg-red-700',
     outline: 'border border-gray-300 text-gray-700 bg-white hover:bg-gray-50',
     ghost: 'text-gray-700 hover:bg-gray-100'
