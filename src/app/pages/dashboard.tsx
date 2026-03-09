@@ -58,16 +58,16 @@ export function Dashboard({ onNavigate }: DashboardProps) {
   const showStats = isOfficeAdmin;
   const showLastEntry = user?.role === 'guard' || user?.role === 'admin';
   const dashboardGridClass = showLastEntry
-    ? 'grid grid-cols-1 gap-6 xl:grid-cols-[396px_minmax(0,1fr)] xl:items-stretch'
+    ? `grid grid-cols-1 gap-6 xl:grid-cols-[396px_minmax(0,1fr)] ${isGuard ? 'xl:items-start' : 'xl:items-stretch'}`
     : 'grid grid-cols-1 gap-6 lg:grid-cols-[396px_minmax(0,1fr)] lg:items-stretch';
   const leftColumnClass = showLastEntry
-    ? 'flex min-h-0 flex-col gap-6 xl:h-full xl:self-stretch'
+    ? `flex min-h-0 flex-col gap-6 ${isGuard ? '' : 'xl:h-full xl:self-stretch'}`
     : 'flex min-h-0 flex-col gap-6 lg:h-full lg:self-stretch';
   const rightColumnClass = showLastEntry
-    ? 'min-w-0 xl:h-full xl:self-stretch'
+    ? `min-w-0 ${isGuard ? '' : 'xl:h-full xl:self-stretch'}`
     : 'min-w-0 lg:h-full lg:self-stretch';
   const quickSearchClass = showLastEntry
-    ? 'w-full overflow-hidden xl:mt-0 xl:flex-1'
+    ? `w-full overflow-hidden xl:mt-0 ${isGuard ? '' : 'xl:flex-1'}`
     : 'w-full overflow-hidden';
   const lastEntry = {
     date: '12.02.2026',

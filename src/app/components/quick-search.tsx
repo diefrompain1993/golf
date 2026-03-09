@@ -118,6 +118,9 @@ const normalizePlateForSearch = (value: string) =>
 
 export function QuickSearch({ className }: QuickSearchProps) {
   const { user } = useAuth();
+  const isGuard = user?.role === 'guard';
+  const useExpandedCardHeight =
+    user?.role === 'guard' || user?.role === 'admin' || user?.role === 'office_admin';
   const canViewOwnerNames = user?.role !== 'guard';
   const [plateNumber, setPlateNumber] = useState(() => lastQuickSearchPlate);
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
@@ -245,7 +248,9 @@ export function QuickSearch({ className }: QuickSearchProps) {
 
   return (
     <div
-      className={`bg-white rounded-xl border border-border shadow-sm px-8 pt-6 pb-5 flex min-h-0 flex-col ${className ?? ''}`}
+      className={`bg-white rounded-xl border border-border shadow-sm px-8 pt-6 pb-5 flex min-h-0 flex-col ${
+        useExpandedCardHeight ? 'xl:min-h-[333px]' : ''
+      } ${className ?? ''}`}
     >
       <h2 className="text-[20px] font-bold text-foreground tracking-tight mb-3">
         Быстрый поиск автомобиля

@@ -118,6 +118,24 @@ const events: Event[] = [
     plateNumber: 'Т555ТТ77',
     owner: 'Николаев В.В.',
     status: 'Белый'
+  },
+  {
+    id: '00012',
+    date: '13.02.2026',
+    time: '11:44:03',
+    camera: 'Въезд-3',
+    plateNumber: 'С222СС16',
+    owner: 'Неизвестно',
+    status: 'Нет в списках'
+  },
+  {
+    id: '00013',
+    date: '13.02.2026',
+    time: '11:40:27',
+    camera: 'Въезд-1',
+    plateNumber: 'Е321КХ116',
+    owner: 'Орлова А.А.',
+    status: 'Белый'
   }
 ];
 
@@ -138,6 +156,7 @@ export function EventsTable({ onViewAll, className }: EventsTableProps) {
   const isGuard = user?.role === 'guard';
   const canViewOwnerNames = user?.role !== 'guard';
   const showListColumn = true;
+  const visibleEventsCount = isGuard ? 13 : 11;
   const [timeSort, setTimeSort] = useState<'asc' | 'desc'>('desc');
 
   const sortedEvents = useMemo(() => {
@@ -146,8 +165,8 @@ export function EventsTable({ onViewAll, className }: EventsTableProps) {
       const diff = parseTimeToSeconds(a.time) - parseTimeToSeconds(b.time);
       return timeSort === 'asc' ? diff : -diff;
     });
-    return next;
-  }, [timeSort]);
+    return next.slice(0, visibleEventsCount);
+  }, [timeSort, visibleEventsCount]);
 
   const getStatusStyles = (status: Event['status']) => {
     const styles = {
