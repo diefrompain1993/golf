@@ -154,9 +154,12 @@ interface EventsTableProps {
 export function EventsTable({ onViewAll, className }: EventsTableProps) {
   const { user } = useAuth();
   const isGuard = user?.role === 'guard';
-  const canViewOwnerNames = user?.role !== 'guard';
+  const isAdmin = user?.role === 'admin';
+  const usesCompactDashboardTableLayout =
+    user?.role === 'guard' || user?.role === 'admin' || user?.role === 'office_admin';
+  const canViewOwnerNames = user?.role === 'admin' || user?.role === 'office_admin';
   const showListColumn = true;
-  const visibleEventsCount = isGuard ? 13 : 11;
+  const visibleEventsCount = isGuard ? 13 : isAdmin ? 10 : 11;
   const [timeSort, setTimeSort] = useState<'asc' | 'desc'>('desc');
 
   const sortedEvents = useMemo(() => {
@@ -189,14 +192,24 @@ export function EventsTable({ onViewAll, className }: EventsTableProps) {
       <div className="flex-1 overflow-x-auto">
         <table
           className={`w-full ${
-            isGuard ? 'min-w-[560px] table-fixed md:min-w-[600px]' : 'min-w-[760px] table-auto xl:min-w-full xl:table-fixed'
+            usesCompactDashboardTableLayout
+              ? 'min-w-[560px] table-fixed md:min-w-[600px]'
+              : 'min-w-[760px] table-auto xl:min-w-full xl:table-fixed'
           }`}
         >
-          <colgroup className={isGuard ? '' : 'hidden xl:table-column-group'}>
-            <col style={{ width: isGuard ? '22%' : '17%' }} />
-            <col style={{ width: isGuard ? '40%' : canViewOwnerNames ? '39%' : '31%' }} />
-            <col style={{ width: isGuard ? '22%' : '22%' }} />
-            <col style={{ width: isGuard ? '16%' : canViewOwnerNames ? '22%' : '30%' }} />
+          <colgroup className={usesCompactDashboardTableLayout ? '' : 'hidden xl:table-column-group'}>
+            <col style={{ width: usesCompactDashboardTableLayout ? '22%' : '17%' }} />
+            <col
+              style={{
+                width: usesCompactDashboardTableLayout ? '40%' : canViewOwnerNames ? '39%' : '31%'
+              }}
+            />
+            <col style={{ width: usesCompactDashboardTableLayout ? '22%' : '22%' }} />
+            <col
+              style={{
+                width: usesCompactDashboardTableLayout ? '16%' : canViewOwnerNames ? '22%' : '30%'
+              }}
+            />
           </colgroup>
           <thead>
             <tr className="bg-muted/20 border-b border-border">
@@ -247,18 +260,32 @@ export function EventsTable({ onViewAll, className }: EventsTableProps) {
                 >
                   <td
                     className={`py-4 text-center whitespace-nowrap text-[14px] font-medium text-foreground/80 tabular-nums transition-colors hover:text-foreground ${
-                      isGuard ? 'px-1.5 md:px-2.5' : 'px-2 md:px-2 xl:px-4'
+                      usesCompactDashboardTableLayout
+                        ? 'px-1.5 md:px-2.5'
+                        : 'px-2 md:px-2 xl:px-4'
                     }`}
                   >
                     {event.time}
                   </td>
                   <td
                     className={`py-4 text-center text-foreground plate-text ${
-                      isGuard ? 'px-2 md:px-3' : 'px-2 md:px-2 xl:px-4'
+                      usesCompactDashboardTableLayout
+                        ? 'px-2 md:px-3'
+                        : 'px-2 md:px-2 xl:px-4'
                     }`}
                   >
-                    <div className={`flex flex-col items-center ${isGuard ? 'gap-1' : 'gap-1.5'}`}>
-                      <div className={`grid w-full items-center ${isGuard ? 'grid-cols-[1fr_auto_1fr] gap-1.5' : 'grid-cols-[1fr_auto_1fr] gap-2'}`}>
+                    <div
+                      className={`flex flex-col items-center ${
+                        usesCompactDashboardTableLayout ? 'gap-1' : 'gap-1.5'
+                      }`}
+                    >
+                      <div
+                        className={`grid w-full items-center ${
+                          usesCompactDashboardTableLayout
+                            ? 'grid-cols-[1fr_auto_1fr] gap-1.5'
+                            : 'grid-cols-[1fr_auto_1fr] gap-2'
+                        }`}
+                      >
                         <span aria-hidden="true" />
                         <span className="inline-flex items-center justify-center gap-2 whitespace-nowrap">
                           {formattedPlate}
@@ -308,10 +335,18 @@ export function EventsTable({ onViewAll, className }: EventsTableProps) {
                     </div>
                   </td>
                   {showListColumn && (
-                    <td className={`py-4 text-center ${isGuard ? 'px-1.5 md:px-2.5' : 'px-2 md:px-2 xl:px-4'}`}>
+                    <td
+                      className={`py-4 text-center ${
+                        usesCompactDashboardTableLayout
+                          ? 'px-1.5 md:px-2.5'
+                          : 'px-2 md:px-2 xl:px-4'
+                      }`}
+                    >
                       <span
                         className={`mx-auto flex w-full items-center justify-center whitespace-nowrap rounded-full font-medium ${
-                          isGuard ? 'max-w-[118px] px-2 py-1 text-[12px]' : 'max-w-[138px] px-2.5 py-1 text-[13px]'
+                          usesCompactDashboardTableLayout
+                            ? 'max-w-[118px] px-2 py-1 text-[12px]'
+                            : 'max-w-[138px] px-2.5 py-1 text-[13px]'
                         } ${getStatusStyles(
                           event.status
                         )}`}
@@ -322,7 +357,9 @@ export function EventsTable({ onViewAll, className }: EventsTableProps) {
                   )}
                   <td
                     className={`py-4 text-center whitespace-nowrap font-medium text-foreground/80 ${
-                      isGuard ? 'px-1.5 text-[13px] md:px-2.5' : 'px-2 text-[14px] md:px-2 xl:px-4'
+                      usesCompactDashboardTableLayout
+                        ? 'px-1.5 text-[13px] md:px-2.5'
+                        : 'px-2 text-[14px] md:px-2 xl:px-4'
                     }`}
                   >
                     {event.camera}
@@ -334,8 +371,16 @@ export function EventsTable({ onViewAll, className }: EventsTableProps) {
         </table>
       </div>
 
-      <div className="px-8 pt-4 pb-2 border-t border-border flex items-center justify-center bg-muted/20">
-        <p className="text-sm font-medium text-muted-foreground text-center w-full -translate-y-[2px]">
+      <div
+        className={`px-8 border-t border-border flex items-center justify-center bg-muted/20 ${
+          isGuard ? 'pt-[14px] pb-[17px]' : isAdmin ? 'pt-4 pb-5' : 'pt-4 pb-2'
+        }`}
+      >
+        <p
+          className={`text-sm font-medium text-muted-foreground text-center w-full ${
+            isGuard ? 'translate-y-0' : isAdmin ? 'translate-y-px' : '-translate-y-[2px]'
+          }`}
+        >
           {sortedEvents.length > 0 ? `Показано 1-${sortedEvents.length} из ${sortedEvents.length}` : 'Показано 0 из 0'}
         </p>
       </div>
