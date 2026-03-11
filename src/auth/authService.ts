@@ -4,6 +4,7 @@ import { getAllUsers } from './userStore';
 const AUTH_TOKEN_KEY = 'auth_token';
 const AUTH_USER_KEY = 'auth_user';
 const AUTH_LAST_LOGIN_KEY = 'auth_last_login';
+const QUICK_SEARCH_STORAGE_KEY = 'quick_search_state';
 const TOKEN_TTL_MS = 8 * 60 * 60 * 1000;
 const INVALID_CREDENTIALS_MESSAGE = 'Неверный email или пароль';
 
@@ -46,9 +47,15 @@ const decodeToken = (token: string): TokenPayload | null => {
   }
 };
 
+const clearQuickSearchState = () => {
+  if (typeof window === 'undefined') return;
+  window.sessionStorage.removeItem(QUICK_SEARCH_STORAGE_KEY);
+};
+
 const clearSession = () => {
   localStorage.removeItem(AUTH_TOKEN_KEY);
   localStorage.removeItem(AUTH_USER_KEY);
+  clearQuickSearchState();
 };
 
 const isTokenValid = (token: string | null, user: User | null) => {
@@ -116,6 +123,7 @@ export const login = (email: string, password: string) => {
   const userWithLastLogin = { ...safeUser, lastLogin };
   const token = createToken(userWithLastLogin);
 
+  clearQuickSearchState();
   localStorage.setItem(AUTH_TOKEN_KEY, token);
   localStorage.setItem(AUTH_USER_KEY, JSON.stringify(userWithLastLogin));
 
