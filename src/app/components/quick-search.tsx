@@ -23,30 +23,53 @@ type SearchResult =
   | { status: 'found'; vehicles: StoredVehicle[] }
   | { status: 'not_found' };
 
-let lastQuickSearchPlate = '';
 const QUICK_SEARCH_STORAGE_KEY = 'quick_search_state';
+
+interface QuickSearchStorageState {
+  plate: string;
+  performed: boolean;
+  userEmail: string | null;
+}
 
 const readStoredQuickSearch = () => {
   if (typeof window === 'undefined') return null;
   try {
     const raw = window.sessionStorage.getItem(QUICK_SEARCH_STORAGE_KEY);
     if (!raw) return null;
-    const parsed = JSON.parse(raw) as { plate?: string; performed?: boolean };
+    const parsed = JSON.parse(raw) as {
+      plate?: string;
+      performed?: boolean;
+      userEmail?: string;
+    };
     if (!parsed || typeof parsed !== 'object') return null;
     return {
       plate: typeof parsed.plate === 'string' ? parsed.plate : '',
-      performed: Boolean(parsed.performed)
-    };
+      performed: Boolean(parsed.performed),
+      userEmail: typeof parsed.userEmail === 'string' ? parsed.userEmail : null
+    } satisfies QuickSearchStorageState;
   } catch {
     return null;
   }
 };
 
-const writeStoredQuickSearch = (plate: string, performed: boolean) => {
+const clearStoredQuickSearch = () => {
   if (typeof window === 'undefined') return;
+  window.sessionStorage.removeItem(QUICK_SEARCH_STORAGE_KEY);
+};
+
+const writeStoredQuickSearch = (
+  plate: string,
+  performed: boolean,
+  userEmail: string | null
+) => {
+  if (typeof window === 'undefined') return;
+  if (!plate.trim()) {
+    clearStoredQuickSearch();
+    return;
+  }
   window.sessionStorage.setItem(
     QUICK_SEARCH_STORAGE_KEY,
-    JSON.stringify({ plate, performed })
+    JSON.stringify({ plate, performed, userEmail })
   );
 };
 
@@ -118,13 +141,20 @@ const normalizePlateForSearch = (value: string) =>
 
 export function QuickSearch({ className }: QuickSearchProps) {
   const { user } = useAuth();
+  const userEmail = user?.email ?? null;
   const isGuard = user?.role === 'guard';
   const isAdmin = user?.role === 'admin';
   const usesGuardDashboardLayout = user?.role === 'guard' || user?.role === 'admin';
   const useExpandedCardHeight =
     user?.role === 'guard' || user?.role === 'admin' || user?.role === 'office_admin';
   const canViewOwnerNames = !usesGuardDashboardLayout;
-  const [plateNumber, setPlateNumber] = useState(() => lastQuickSearchPlate);
+  const [plateNumber, setPlateNumber] = useState(() => {
+    const stored = readStoredQuickSearch();
+    if (!stored || !userEmail || stored.userEmail !== userEmail) {
+      return '';
+    }
+    return stored.plate;
+  });
   const [searchResult, setSearchResult] = useState<SearchResult | null>(null);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
@@ -167,12 +197,10 @@ export function QuickSearch({ className }: QuickSearchProps) {
     const trimmedPlate = plateNumber.trim();
     if (!trimmedPlate) {
       setSearchResult(null);
-      lastQuickSearchPlate = '';
-      writeStoredQuickSearch('', false);
+      writeStoredQuickSearch('', false, userEmail);
       return;
     }
-    lastQuickSearchPlate = trimmedPlate;
-    writeStoredQuickSearch(trimmedPlate, true);
+    writeStoredQuickSearch(trimmedPlate, true, userEmail);
     runSearch(trimmedPlate);
   };
 
@@ -190,14 +218,31 @@ export function QuickSearch({ className }: QuickSearchProps) {
 
   useEffect(() => {
     const stored = readStoredQuickSearch();
-    if (stored?.plate && stored.plate !== plateNumber) {
+    if (!stored) {
+      setPlateNumber('');
+      setSearchResult(null);
+      return;
+    }
+
+    if (!userEmail || stored.userEmail !== userEmail) {
+      clearStoredQuickSearch();
+      setPlateNumber('');
+      setSearchResult(null);
+      setDetailsOpen(false);
+      return;
+    }
+
+    if (stored.plate !== plateNumber) {
       setPlateNumber(stored.plate);
-      lastQuickSearchPlate = stored.plate;
     }
-    if (stored?.performed && stored.plate) {
+
+    if (stored.performed && stored.plate) {
       runSearch(stored.plate);
+      return;
     }
-  }, [runSearch]);
+
+    setSearchResult(null);
+  }, [plateNumber, runSearch, userEmail]);
 
   const handleOpenCard = () => {
     if (!hasFoundResult) return;
@@ -289,8 +334,7 @@ export function QuickSearch({ className }: QuickSearchProps) {
                   const value = e.target.value;
                   const trimmedValue = value.trim();
                   setPlateNumber(value);
-                  lastQuickSearchPlate = value;
-                  writeStoredQuickSearch(trimmedValue ? value : '', false);
+                  writeStoredQuickSearch(trimmedValue ? value : '', false, userEmail);
                   if (searchResult) {
                     setSearchResult(null);
                   }
