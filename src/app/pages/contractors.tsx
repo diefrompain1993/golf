@@ -754,7 +754,7 @@ export function Contractors() {
                             setErrors((prev) => ({ ...prev, owner: undefined }));
                           }
                         }}
-                        placeholder="ООО В«СМКВ»"
+                        placeholder={'ООО "СМК"'}
                       />
                       {errors.owner && (
                         <p className="mt-1 text-xs text-red-600">{errors.owner}</p>
