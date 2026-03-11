@@ -784,7 +784,7 @@ export function ExportData() {
                 }`}
                 style={{ overflow: 'hidden' }}
               >
-                <div className="grid grid-cols-1 gap-4 md:max-w-[536px] md:grid-cols-2">
+                <div className="grid max-w-[260px] grid-cols-1 gap-4 md:max-w-[536px] md:grid-cols-2">
                   <TimePickerInput
                     label="Время с"
                     value={manualTimeFrom}
@@ -832,7 +832,7 @@ export function ExportData() {
                 }`}
                 style={{ overflow: 'hidden' }}
               >
-                <div className="grid grid-cols-1 gap-4 md:grid-cols-[260px] md:justify-start">
+                <div className="grid max-w-[260px] grid-cols-1 gap-4 md:grid-cols-[260px] md:justify-start">
                   <DatePickerInput
                     label="Дата"
                     value={manualDate}
@@ -850,7 +850,7 @@ export function ExportData() {
                   }`}
                   style={{ overflow: 'hidden' }}
                 >
-                  <div className="grid grid-cols-1 gap-4 md:max-w-[536px] md:grid-cols-2">
+                  <div className="grid max-w-[260px] grid-cols-1 gap-4 md:max-w-[536px] md:grid-cols-2">
                     <TimePickerInput
                       label="Время с"
                       value={manualTimeFrom}
